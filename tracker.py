@@ -28,6 +28,9 @@ def main():
 
     try:
         #Calls the Gmail & Sheets API
+        gmail_service = build("gmail", "v1", credentials=creds)
+        sheets_service = build("sheets", "v4", credentials=creds)
+
         pass
 
     except HttpError as error:
