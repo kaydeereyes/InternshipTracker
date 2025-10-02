@@ -1,8 +1,7 @@
 from datetime import datetime
-from email import encoders
+from email.utils import parsedate_to_datetimed
 
 from googleapiclient.errors import HttpError
-#from googleapiclient.discovery import build
 
 def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max_results=5):
     messages = []
@@ -38,4 +37,5 @@ def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max
     
     return messages[:max_results] if max_results else messages
 
+def 
     
