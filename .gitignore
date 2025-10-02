@@ -15,8 +15,10 @@ __pycache__/
 # Google API credentials
 credentialsGmail.json
 credentialsSheets.json
+credentials.json
 token_gmail.json
 token_sheets.json
+token.json
 
 # IDE settings
 .vscode/
