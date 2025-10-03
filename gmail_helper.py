@@ -5,7 +5,7 @@ from email.utils import parsedate_to_datetime
 
 from googleapiclient.errors import HttpError
 
-def load_keywords(filepath='keywords.txt'):
+def load_keywords(filepath='keywords.txt') -> list:
     try:
         with open(filepath, 'r') as f:
             keywords = [line.strip().lower() for line in f if line.strip()]
@@ -14,7 +14,7 @@ def load_keywords(filepath='keywords.txt'):
         print(f"Keyword file {filepath} not found. Using default keywords.")
         return ["internship", "intern", "application"]
 
-def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max_results=5):
+def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max_results=5) -> list:
     messages = []
     next_page_token = None
 
@@ -55,7 +55,7 @@ def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max
     
     return messages[:max_results] if max_results else messages
 
-def is_internship_email(message, keywords):
+def is_internship_email(message, keywords) -> bool:
     headers = message['payload']['headers']
 
     subject = next((h['value'] for h in headers if h['name'].lower() == 'subject'), '')
@@ -76,4 +76,42 @@ def is_internship_email(message, keywords):
 
     return False
 
-#def extract_email_info()
+def get_or_create_label(service, label_name = 'Career/Internships'):
+    results = service.users().label().list(userId="me").execute()
+    labels = results.get("labels", [])
+
+    for label in labels:
+        if label["name"].lower() == label_name.lower():
+            return label["id"]
+    
+    label_obj = {
+        "name": label_name,
+        "labelListVisibility": "labelShow",
+        "messageListVisibility": "show"
+    }
+    new_label = service.users().labels().create(userId="me", body=label_obj).execute()
+    return new_label["id"]
+
+def label_message(service, msg_id, label_id) -> None:
+    service.users().messages().modify(
+        userId = "me",
+        id=msg_id,
+        body={"addLabelIds": [label_id]}
+    ).execute()
+
+def debug_print_message(message):
+    """
+    Prints key info (ID, Subject, From, Date) for debugging Gmail API messages.
+    """
+    headers = message.get("payload", {}).get("headers", [])
+
+    subject = next((h["value"] for h in headers if h["name"].lower() == "subject"), "")
+    sender = next((h["value"] for h in headers if h["name"].lower() == "from"), "")
+    date = next((h["value"] for h in headers if h["name"].lower() == "date"), "")
+
+    print("------ EMAIL DEBUG ------")
+    print(f"ID: {message.get('id', '')}")
+    print(f"From: {sender}")
+    print(f"Subject: {subject}")
+    print(f"Date: {date}")
+    print("-------------------------\n")

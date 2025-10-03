@@ -9,8 +9,8 @@ from googleapiclient.errors import HttpError
 import gmail_helper as gh
 
 SCOPES = [
-    "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/spreadsheets.readonly"
+    "https://www.googleapis.com/auth/gmail.modify",
+    "https://www.googleapis.com/auth/spreadsheets.modify"
 ]
 
 def get_credentials():
@@ -42,11 +42,14 @@ def main():
         gmail_service = build("gmail", "v1", credentials=creds)
         sheets_service = build("sheets", "v4", credentials=creds)
 
-        messages = gh.get_messages(gmail_service, max_results=5)
+        email_amt = int(input('How many emails would you like to iterate through?\n'))
+
+        messages = gh.get_messages(gmail_service, email_amt)
 
         for m in messages:
-            if gh.is_internship_email(full_message, keywords):
-                print('INTERNSHIP')
+            if gh.is_internship_email(m, keywords):
+                #gh.debug_print_message(m)
+                gh.label_message(gmail_service, m["id"])
 
         
             
