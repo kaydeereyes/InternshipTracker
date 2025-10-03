@@ -10,7 +10,7 @@ import gmail_helper as gh
 
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.modify",
-    "https://www.googleapis.com/auth/spreadsheets.modify"
+    "https://www.googleapis.com/auth/spreadsheets"
 ]
 
 def get_credentials():
@@ -44,12 +44,14 @@ def main():
 
         email_amt = int(input('How many emails would you like to iterate through?\n'))
 
-        messages = gh.get_messages(gmail_service, email_amt)
+        messages = gh.get_messages(gmail_service, max_results=email_amt)
 
         for m in messages:
+            full_msg = gmail_service.users().messages().get(userId="me", id=m["id"]).execute()
             if gh.is_internship_email(m, keywords):
                 #gh.debug_print_message(m)
-                gh.label_message(gmail_service, m["id"])
+                label_id = gh.get_or_create_label(gmail_service)
+                gh.label_message(gmail_service, full_msg["id"], label_id)
 
         
             

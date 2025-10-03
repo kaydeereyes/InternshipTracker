@@ -77,7 +77,7 @@ def is_internship_email(message, keywords) -> bool:
     return False
 
 def get_or_create_label(service, label_name = 'Career/Internships'):
-    results = service.users().label().list(userId="me").execute()
+    results = service.users().labels().list(userId="me").execute()
     labels = results.get("labels", [])
 
     for label in labels:
