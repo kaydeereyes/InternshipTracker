@@ -35,6 +35,8 @@ def get_credentials():
 def main():
     creds = get_credentials()
 
+    keywords = gh.load_keywords()
+
     try:
         #Calls the Gmail & Sheets API
         gmail_service = build("gmail", "v1", credentials=creds)
@@ -42,9 +44,12 @@ def main():
 
         messages = gh.get_messages(gmail_service, max_results=5)
 
-        print(f"Found {len(messages)} messages:")
         for m in messages:
-            print(m)
+            if gh.is_internship_email(full_message, keywords):
+                print('INTERNSHIP')
+
+        
+            
 
     except HttpError as error:
         print(f"An error occurred: {error}")

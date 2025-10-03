@@ -1,7 +1,18 @@
+import base64
+
 from datetime import datetime
-from email.utils import parsedate_to_datetimed
+from email.utils import parsedate_to_datetime
 
 from googleapiclient.errors import HttpError
+
+def load_keywords(filepath='keywords.txt'):
+    try:
+        with open(filepath, 'r') as f:
+            keywords = [line.strip().lower() for line in f if line.strip()]
+        return keywords
+    except FileNotFoundError:
+        print(f"Keyword file {filepath} not found. Using default keywords.")
+        return ["internship", "intern", "application"]
 
 def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max_results=5):
     messages = []
@@ -28,7 +39,14 @@ def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max
             pageToken=next_page_token
         ).execute()
 
-        messages.extend(result.get('messages', []))
+        message_ids = result.get("messages", [])
+
+        for msg in message_ids:
+            full_message = service.users().messages().get(
+                userId=user_id,
+                id=msg["id"]
+            ).execute()
+            messages.append(full_message)
 
         next_page_token = result.get('nextPageToken')
 
@@ -37,5 +55,25 @@ def get_messages(service, user_id='me', label_ids=None, folder_name='INBOX', max
     
     return messages[:max_results] if max_results else messages
 
-def 
+def is_internship_email(message, keywords):
+    headers = message['payload']['headers']
+
+    subject = next((h['value'] for h in headers if h['name'].lower() == 'subject'), '')
     
+    subject_lower = subject.lower()
+
+    if any(keyword in subject_lower for keyword in keywords):
+        return True
+    
+    try:
+        if 'data' in message['payload']['body']:
+            body_data = message['payload']['body']['data']
+            body = base64.urlsafe_b64decode(body_data).decode(errors='ignore').lower()
+            if any(keyword in body for keyword in keywords):
+                return True
+    except Exception:
+        pass
+
+    return False
+
+#def extract_email_info()
